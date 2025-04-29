@@ -51,10 +51,17 @@ options:
         version_added: 3.5.0
       termination_id:
         description:
-          - The ProviderNetwork, Location, Site, Region, or SiteGroup ID of the circuit termination will be assigned to.
+          - The ProviderNetwork, Location, Site, Region, or SiteGroup ID of the circuit termination will be assigned to (if identified by an integer)
           - This parameter is used with NetBox versions >= 4.2.0.
         required: false
         type: int
+        version_added: 4.2.0
+      termination:
+        description:
+          - The ProviderNetwork, Location, Site, or Region of the circuit termination will be assigned to (If identified by a string).
+          - This parameter is used with NetBox versions >= 4.2.0.
+        required: false
+        type: str
         version_added: 4.2.0
       termination_type:
         description:
@@ -123,6 +130,18 @@ EXAMPLES = r"""
           circuit: Test Circuit
           term_side: A
           termination_id: 1
+          termination_type: dcim.site
+          port_speed: 10000
+        state: present
+
+    - name: Create circuit termination within NetBox version 4.2.0 or later with a Site name
+      netbox.netbox.netbox_circuit_termination:
+        netbox_url: http://netbox.local
+        netbox_token: thisIsMyToken
+        data:
+          circuit: Test Circuit
+          term_side: A
+          termination: Site
           termination_type: dcim.site
           port_speed: 10000
         state: present
@@ -198,6 +217,7 @@ def main():
                     term_side=dict(required=True, choices=["A", "Z"]),
                     mark_connected=dict(required=False, type="bool"),
                     termination_id=dict(required=False, type="int"),
+                    termination=dict(required=False, type="str"),
                     termination_type=dict(
                         required=False,
                         type="str",
@@ -228,8 +248,10 @@ def main():
 
     mutually_exclusive = [
         ("termination_id", "site"),
+        ("termination", "site"),
         ("termination_type", "site"),
         ("termination_id", "provider_network"),
+        ("termination", "provider_network"),
         ("termination_type", "provider_network"),
     ]
 
